@@ -1,0 +1,49 @@
+version: '3.8'
+name: jbpm
+services:
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      JBPM_DB_DRIVER: "postgres"
+      JBPM_DB_HOST: "db"
+      JBPM_DB_USER: "jbpm"
+      JBPM_DB_NAME: "jbpm"
+      JBPM_DB_PASSWORD: "password"
+    volumes:
+      - niogit:/opt/jboss/wildfly/bin/.niogit
+      - config:/opt/jboss/wildfly/standalone/configuration
+    mem_limit: 4g
+    mem_reservation: 500m
+    restart: always
+    ports:
+      - 8080:8080
+      - 8081:8081 
+    healthcheck:
+      interval: 3s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - curl --fail 127.0.0.1:8080
+  db:
+    image: postgres:9.6
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: "jbpm"
+      POSTGRES_USER: "jbpm"
+      POSTGRES_PASSWORD: "password"
+    mem_limit: 1g
+    mem_reservation: 500m
+    healthcheck:
+      interval: 3s
+      retries: 10
+      test:
+      - CMD-SHELL
+      - psql -U "jbpm" -c '\l' "jbpm"
+      timeout: 3s
+volumes:
+  niogit: {}
+  config: {}
+  pg_data: {}
